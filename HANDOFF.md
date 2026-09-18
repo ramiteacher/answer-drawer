@@ -47,7 +47,7 @@ answerDrawer/{uid}/replies/{replyId}  { title, category, body, favorite, order, 
 
 ## 조율 주의사항
 
-- **marketgen-ai 는 Codex 와 동시 작업 중.** 2026-09-18 작업 시점에 Codex 가 `AppAuthenticated.tsx`, `components/Changelog.tsx`, `services/bulkGeneration*.ts` 를 수정하고 있었다. 내 변경은 확장 폴더 2곳·`firestore.rules`·`public/downloads/freecanvas-ai-helper.zip` 뿐이며, 로컬 커밋만 하고 푸시·배포는 사장님 승인 후.
+- **marketgen-ai 는 Codex 와 동시 작업 중 — 이미 일부가 푸시됐다.** 2026-09-18 작업 도중 Codex 커밋 `80543e9`(엑셀 대량 생성)가 `git add -A` 로 내 작업 중 파일(manifest 0.3.0+key, background/popup 변경, `firestore.rules` answerDrawer 블록, 1차 빌드의 `answer-drawer/` 폴더, ZIP)을 함께 담아 origin/main 에 푸시했고 freecanvas Pages 배포도 성공했다. 즉 **freecanvas.ai.kr 다운로드 ZIP 은 이미 0.3.0(1차 패널 빌드)** 이다. 그러나 (a) Firestore 규칙은 아직 미배포로 추정(Codex HANDOFF "미배포"), (b) answer-drawer 웹(`auth.html`)이 미배포라 그 ZIP 으로 사이드패널 로그인을 누르면 실패한다. 상품 가져오기 기능은 영향 없음. 최종 빌드(멀티탭 재구독 수정 포함)와 확장 README 는 내 로컬 커밋 `f1f216e` 에만 있다 → 아래 배포 절차 1·3·4 를 빨리 진행하거나, 원치 않으면 marketgen-ai 에서 확장 변경을 되돌려야 한다.
 - 확장의 `answer-drawer/` 폴더는 빌드 산출물이다. 직접 고치지 말고 answer-drawer 에서 `npm run build && npm run sync:freecanvas` 로 갱신한다. 소스 폴더와 미러 폴더는 항상 둘 다.
 - 로그인 도우미는 확장 ID 하나만 허용한다. 프리캔버스 확장의 `key` 를 바꾸거나 다른 확장에서 쓰려면 `lib/extension-id.ts` 와 `auth.html` 을 다시 배포해야 한다.
 - 이 저장소에서 `firebase deploy` 금지(프로젝트 규칙 전체가 answerDrawer 블록으로 덮여 프리캔버스가 깨진다). `firebase.emulator.json` 은 에뮬레이터 전용.
