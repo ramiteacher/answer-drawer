@@ -21,7 +21,7 @@ for(const dir of targets){
  await fs.cp(source,dest,{recursive:true});
  const problems=[];
  if(manifest.side_panel?.default_path!==`${PANEL_DIR}/sidepanel.html`)problems.push(`side_panel.default_path 가 ${PANEL_DIR}/sidepanel.html 이 아닙니다`);
- for(const permission of ['sidePanel','offscreen'])if(!manifest.permissions?.includes(permission))problems.push(`permissions 에 ${permission} 이 없습니다`);
+ for(const permission of ['sidePanel','offscreen','storage'])if(!manifest.permissions?.includes(permission))problems.push(`permissions 에 ${permission} 이 없습니다`);
  if(EXTENSION_PUBLIC_KEY&&manifest.key!==EXTENSION_PUBLIC_KEY)problems.push(`manifest.key 가 lib/extension-id.ts 의 공개키(ID ${EXTENSION_ID})와 다릅니다`);
  console.log(`복사 완료 → ${path.relative(marketgen,dest)} (manifest ${manifest.version})${problems.length?`\n  ⚠ ${problems.join('\n  ⚠ ')}`:''}`);
 }
