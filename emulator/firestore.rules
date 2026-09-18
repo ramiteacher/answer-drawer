@@ -13,13 +13,18 @@ service cloud.firestore {
       function isDrawerOwner() {
         return request.auth != null && request.auth.uid == uid;
       }
+      // 쓰기는 프리캔버스 베이직 플랜 이상(활성 구독 plan 클레임) — 사장님 지시 2026-09-18. 읽기·삭제는 소유자 그대로.
+      // 프리캔버스 병합본(marketgen-ai/firestore.rules)에는 isAdmin() 우회가 추가로 있다.
+      function canWriteDrawer() {
+        return isDrawerOwner() && request.auth.token.get('plan', '') in ['basic', 'pro', 'max', 'exclusive'];
+      }
       allow read, delete: if isDrawerOwner();
-      allow create, update: if isDrawerOwner()
+      allow create, update: if canWriteDrawer()
         && request.resource.data.keys().hasOnly(['initializedAt', 'updatedAt', 'migrationVersion', 'source']);
 
       match /stores/{storeId} {
         allow read, delete: if isDrawerOwner();
-        allow create, update: if isDrawerOwner()
+        allow create, update: if canWriteDrawer()
           && request.resource.data.keys().hasOnly(['name', 'channel', 'address', 'exchangeFee', 'returnFee', 'shipping', 'returns', 'size', 'order', 'updatedAt'])
           && request.resource.data.name is string && request.resource.data.name.size() <= 100
           && request.resource.data.channel is string && request.resource.data.channel.size() <= 60
@@ -28,7 +33,7 @@ service cloud.firestore {
 
       match /replies/{replyId} {
         allow read, delete: if isDrawerOwner();
-        allow create, update: if isDrawerOwner()
+        allow create, update: if canWriteDrawer()
           && request.resource.data.keys().hasOnly(['title', 'category', 'body', 'favorite', 'order', 'updatedAt'])
           && request.resource.data.title is string && request.resource.data.title.size() <= 100
           && request.resource.data.body is string && request.resource.data.body.size() <= 12000

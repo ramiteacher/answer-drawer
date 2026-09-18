@@ -5,7 +5,9 @@ import fs from 'node:fs/promises';
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
 
 const env=await initializeTestEnvironment({projectId:'demo-answer-drawer',firestore:{rules:await fs.readFile('emulator/firestore.rules','utf8'),host:'127.0.0.1',port:8080}});
-const alice=env.authenticatedContext('alice',{email:'alice@example.com'}).firestore();
+// alice: 베이직 플랜 클레임(프리캔버스 syncPlanClaims 가 발급) — 쓰기 허용. free: 로그인은 했지만 구독 없음 — 읽기만.
+const alice=env.authenticatedContext('alice',{email:'alice@example.com',plan:'basic'}).firestore();
+const free=env.authenticatedContext('free',{email:'free@example.com'}).firestore();
 const bob=env.authenticatedContext('bob',{email:'bob@example.com'}).firestore();
 const anon=env.unauthenticatedContext().firestore();
 const storeDoc={name:'내 스토어',channel:'스마트스토어',address:'',exchangeFee:'',returnFee:'',shipping:'',returns:'',size:'',order:0,updatedAt:new Date()};
@@ -19,6 +21,13 @@ test('owner can create meta, stores and replies and read them back',async()=>{
  await assertSucceeds(alice.doc('answerDrawer/alice/replies/r1').set(replyDoc));
  await assertSucceeds(alice.collection('answerDrawer/alice/replies').get());
  await assertSucceeds(alice.doc('answerDrawer/alice/replies/r1').delete());
+});
+test('signed-in users without a paid plan claim can read their own data but cannot write',async()=>{
+ await assertFails(free.doc('answerDrawer/free').set({initializedAt:new Date(),updatedAt:new Date(),migrationVersion:1,source:'web'}));
+ await assertFails(free.doc('answerDrawer/free/replies/r1').set(replyDoc));
+ await assertFails(free.doc('answerDrawer/free/stores/s1').set(storeDoc));
+ await assertSucceeds(free.collection('answerDrawer/free/replies').get());
+ await assertSucceeds(free.doc('answerDrawer/free').get());
 });
 test('other users and anonymous visitors are denied everything',async()=>{
  await assertFails(bob.doc('answerDrawer/alice').get());

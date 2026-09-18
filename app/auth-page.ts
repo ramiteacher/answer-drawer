@@ -12,7 +12,7 @@ const status=document.getElementById("status");
 const say=(text:string)=>{if(status)status.textContent=text;};
 let running=false;
 
-if(window.parent===window){say("이 페이지는 프리캔버스AI 보조 확장프로그램의 로그인 도우미예요. 답변서랍은 상위 주소에서 열어 주세요.");}
+if(window.parent===window){say("이 페이지는 프리캔버스AI 보조 확장프로그램의 로그인 도우미예요. CS 답변서랍은 상위 주소에서 열어 주세요.");}
 else if(!firebaseEnabled){say("로그인 설정이 없어요.");}
 else window.addEventListener("message",async(event:MessageEvent)=>{
  const data=event.data as {type?:unknown}|null;

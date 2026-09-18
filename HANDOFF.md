@@ -2,6 +2,14 @@
 
 갱신: 2026-09-18 (Claude). 이전 인계 문서: `answer-drawer-claude-handoff-20260918-145152.zip` 의 CLAUDE_HANDOFF.md (요구사항 원문).
 
+## 2026-09-18 16:40 추가 (프리캔버스 기능 세션이 반영 — 사장님 지시 "CS 서랍 이름 붙여 상단바에, 베이직 이상")
+
+- 프리캔버스 안 이름은 **「CS 답변서랍」**. 프리캔버스 웹 상단 메뉴에 붙었고(런처 창: 사이드패널 열기 / 웹에서 열기 / 설치 안내), 베이직 플랜 이상(활성 구독)·관리자만 연다. 이 저장소에서도 제목·브랜드·auth 문구를 「CS 답변서랍」으로 바꿨다(layout.tsx, index.html, auth.html, auth-page.ts, page.tsx).
+- **Firestore 규칙**: marketgen-ai `firestore.rules` 의 `answerDrawer/{uid}` create/update 를 `canWriteDrawer()`(소유자 && (관리자 || plan 클레임 basic/pro/max/exclusive))로 게이트해 **배포함(16:33 KST)**. 읽기·삭제는 소유자 그대로. `emulator/firestore.rules` 와 `tests/rules.test.mjs` 도 같은 게이트로 갱신(무구독 사용자 free 는 읽기만 성공). 클레임은 프리캔버스 서버 `syncPlanClaims` 가 결제·부여 시점과 매일 스위프에서 발급한다 — 구독 직후에는 재로그인(토큰 갱신)이 필요할 수 있다.
+- **UI**: `hooks/use-drawer.ts` 의 쓰기 permission-denied 문구를 요금제 안내(`PLAN_MESSAGE`)로 바꿨다. 로컬 모드는 그대로 동작한다.
+- **확장 브릿지(0.3.1, marketgen-ai)**: 프리캔버스 웹 → `content-app.js`(`OPEN_ANSWER_DRAWER`) → `background.js`(`answer-drawer-open` → `chrome.sidePanel.open`). sync 스크립트는 `answer-drawer/` 폴더만 복사하므로 영향 없음 — popup/content-app/background 는 덮어쓰지 말 것.
+- 이 변경으로 `npm run build` → `npm run sync:freecanvas` 를 돌려 marketgen-ai 확장 폴더(0.3.2)에 반영했고, GitHub secrets(VITE_FIREBASE_* 6개)를 등록한 뒤 main 을 푸시했다(Pages Actions 결과는 marketgen HANDOFF 9/18 9차 참고).
+
 ## 지금 상태
 
 - **Google 로그인 + Firestore 동기화 구현 완료(로컬 검증 완료, 미배포).** 웹(GitHub Pages)과 확장 사이드패널이 같은 Google 계정으로 같은 `answerDrawer/{uid}` 데이터를 실시간으로 읽고 쓴다.

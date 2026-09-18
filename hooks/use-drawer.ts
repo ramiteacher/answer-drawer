@@ -17,6 +17,8 @@ export const statusLabel:Record<SyncStatus,string>={local:"내 브라우저에 �
 type Session={uid:string;alive:boolean;subscribed:boolean;initChecked:boolean;sawServer:boolean;lastFromCache:boolean;orders:OrderMap;latest:DrawerState;pending:number;deferred:CloudSnapshot|null;failed:DrawerState|null;off:()=>void;timer:ReturnType<typeof setTimeout>|null;retryTimer:ReturnType<typeof setTimeout>|null};
 const online=()=>typeof navigator==="undefined"||navigator.onLine!==false;
 const PERMISSION="permission-denied";
+// 프리캔버스 Firestore 규칙(2026-09-18)이 answerDrawer 쓰기를 베이직 플랜 이상(plan 클레임)으로 막는다 — 쓰기 거부는 요금제 안내로 보여 준다.
+export const PLAN_MESSAGE="CS 답변서랍의 계정 동기화는 프리캔버스 베이직 플랜 이상에서 쓸 수 있어요. 구독 전에는 이 브라우저에만 저장돼요. 구독 후에는 다시 로그인해 주세요. (freecanvas.ai.kr)";
 
 export function useDrawer(notify:(message:string)=>void){
  const[account,setAccount]=useState<Account|null>(null);const[authReady,setAuthReady]=useState(!firebaseEnabled);
@@ -78,7 +80,7 @@ export function useDrawer(notify:(message:string)=>void){
    subscribe(current);
   }catch(err){
    if(!current.alive)return;
-   const message=(err as {code?:string}).code===PERMISSION?"계정 데이터에 접근할 권한이 없어요. 관리자에게 문의해 주세요.":"계정 데이터를 불러오지 못했어요. 네트워크를 확인한 뒤 다시 시도해 주세요.";
+   const message=(err as {code?:string}).code===PERMISSION?PLAN_MESSAGE:"계정 데이터를 불러오지 못했어요. 네트워크를 확인한 뒤 다시 시도해 주세요.";
    setStatus("error");setSyncError(message);setStartError(message);
   }
  }
@@ -110,7 +112,7 @@ export function useDrawer(notify:(message:string)=>void){
   current.pending++;setSyncError("");setStatus(online()?"syncing":"offline");
   applyOps(current.uid,ops)
    .then(()=>{if(!current.alive)return;current.pending--;if(current.pending===0){setStatus("synced");settle(current);}})
-   .catch(err=>{if(!current.alive)return;current.pending--;current.failed=state;setSyncError((err as {code?:string}).code===PERMISSION?"저장 권한이 없어요. 다시 로그인한 뒤 시도해 주세요.":"변경 내용을 계정에 저장하지 못했어요. 다시 시도해 주세요.");if(current.pending===0){if(current.deferred){const last=current.deferred;current.deferred=null;adopt(current,last);}setStatus("error");}});
+   .catch(err=>{if(!current.alive)return;current.pending--;current.failed=state;setSyncError((err as {code?:string}).code===PERMISSION?PLAN_MESSAGE:"변경 내용을 계정에 저장하지 못했어요. 다시 시도해 주세요.");if(current.pending===0){if(current.deferred){const last=current.deferred;current.deferred=null;adopt(current,last);}setStatus("error");}});
  }
 
  const commit=useCallback(async(next:DrawerState,backup=false):Promise<boolean>=>{
