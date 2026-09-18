@@ -22,4 +22,12 @@ export async function loadData(){const saved=await read(KEY);return saved?valida
 export async function saveData(data:DrawerState){await write(KEY,exportEnvelope(validateData(data)));}
 export async function replaceData(data:DrawerState){const previous=await read(KEY);if(previous)await write(BACKUP,previous);await saveData(data);}
 export async function restorePrevious(){const saved=await read(BACKUP);if(!saved)throw new Error("이전에 보관한 백업이 없어요.");const result=validateData((saved as {data:unknown}).data);await replaceData(result);return result;}
+// ── 계정 동기화 보조 ──
+// 이전 백업 슬롯(answer-drawer:previous)은 이 기기의 것이다. 클라우드 모드에서도 "가져오기/복원/삭제 전 상태"를 여기에 둔다.
+const MIGRATED="answer-drawer:migrated";
+export async function keepAsPrevious(data:DrawerState){await write(BACKUP,exportEnvelope(validateData(data)));}
+export async function loadPrevious():Promise<DrawerState>{const saved=await read(BACKUP);if(!saved)throw new Error("이전에 보관한 백업이 없어요.");return validateData((saved as {data:unknown}).data);}
+/** 이 기기의 로컬 데이터를 옮겨 준 계정 UID. 한 계정에만 옮기고 다른 계정으로는 새어 들어가지 않게 한다. */
+export async function readMigratedUid():Promise<string|null>{const saved=await read(MIGRATED);return saved&&typeof saved==="object"&&typeof(saved as {uid?:unknown}).uid==="string"?(saved as {uid:string}).uid:null;}
+export async function markMigrated(uid:string){await write(MIGRATED,{uid,at:new Date().toISOString()});}
 export function observeData(fn:()=>void){if(isExtension()){const listener=(changes:Record<string,unknown>,area:string)=>{if(area==="local"&&KEY in changes)fn();};extensionApi()!.storage.onChanged.addListener(listener);return()=>extensionApi()!.storage.onChanged.removeListener(listener);}const listener=(event:StorageEvent)=>{if(event.key===KEY)fn();};window.addEventListener("storage",listener);return()=>window.removeEventListener("storage",listener);}

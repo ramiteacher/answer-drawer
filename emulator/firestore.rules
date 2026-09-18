@@ -1,0 +1,45 @@
+rules_version = '2';
+// 답변서랍 Firestore 규칙 — 로컬 에뮬레이터·규칙 테스트 전용.
+// 실제 배포 규칙은 marketgen-ai 저장소의 firestore.rules(프로젝트 marketgen-ai-87525, 다른 앱과 공유)에
+// 아래 answerDrawer 블록을 병합해 그쪽에서 배포한다. 이 저장소에서 firebase deploy 를 실행하면 안 된다.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 답변서랍(answer-drawer, ramiteacher.github.io/answer-drawer + 프리캔버스AI 보조 확장 사이드패널)
+    // 사용자 본인 네임스페이스만 읽고 쓴다. 문서 형태:
+    //   answerDrawer/{uid}                  메타(initializedAt·updatedAt·migrationVersion·source)
+    //   answerDrawer/{uid}/stores/{storeId} 스토어 정보 + order
+    //   answerDrawer/{uid}/replies/{replyId} 답변 + order
+    match /answerDrawer/{uid} {
+      function isDrawerOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      allow read, delete: if isDrawerOwner();
+      allow create, update: if isDrawerOwner()
+        && request.resource.data.keys().hasOnly(['initializedAt', 'updatedAt', 'migrationVersion', 'source']);
+
+      match /stores/{storeId} {
+        allow read, delete: if isDrawerOwner();
+        allow create, update: if isDrawerOwner()
+          && request.resource.data.keys().hasOnly(['name', 'channel', 'address', 'exchangeFee', 'returnFee', 'shipping', 'returns', 'size', 'order', 'updatedAt'])
+          && request.resource.data.name is string && request.resource.data.name.size() <= 100
+          && request.resource.data.channel is string && request.resource.data.channel.size() <= 60
+          && request.resource.data.order is number;
+      }
+
+      match /replies/{replyId} {
+        allow read, delete: if isDrawerOwner();
+        allow create, update: if isDrawerOwner()
+          && request.resource.data.keys().hasOnly(['title', 'category', 'body', 'favorite', 'order', 'updatedAt'])
+          && request.resource.data.title is string && request.resource.data.title.size() <= 100
+          && request.resource.data.body is string && request.resource.data.body.size() <= 12000
+          && request.resource.data.category is string
+          && request.resource.data.favorite is bool
+          && request.resource.data.order is number;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

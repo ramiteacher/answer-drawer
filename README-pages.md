@@ -1,6 +1,6 @@
 # 답변서랍
 
-스마트스토어·쿠팡 셀러를 위한 고객 문의 답변 관리 도구입니다. GitHub Pages 웹사이트와 Chrome Manifest V3 확장프로그램을 같은 소스로 제공합니다.
+스마트스토어·쿠팡 셀러를 위한 고객 문의 답변 관리 도구입니다. GitHub Pages 웹사이트(https://ramiteacher.github.io/answer-drawer/)와 「프리캔버스AI 보조」 Chrome 확장프로그램의 사이드패널을 같은 소스로 제공하며, Google 계정으로 로그인하면 둘이 같은 답변을 자동으로 주고받습니다.
 
 ## 할 수 있는 일
 
@@ -9,77 +9,79 @@
 - 여러 스토어의 출고 안내, 반품 주소, 배송비, 접수 방법 관리
 - `{스토어명}`, `{출고 안내}`, `{반품 주소}`, `{교환 배송비}`, `{반품 배송비}`, `{접수 방법}`, `{사이즈 안내}` 자동 입력
 - 발송할 문구만 임시로 수정하고 복사. 미입력 항목이 남으면 복사를 차단합니다.
+- Google 로그인 → 웹과 확장프로그램 사이드패널이 같은 답변을 실시간으로 동기화
 - JSON 백업 내보내기·가져오기, 이전 백업 복원
-- 웹에서 확장프로그램으로 답변 스냅샷 전송
 - 단축키 `/`로 검색, `Ctrl+Enter` 또는 `Cmd+Enter`로 복사
 
 ## 저장 방식
 
-웹사이트는 현재 브라우저의 localStorage, 확장프로그램은 chrome.storage.local에 저장합니다. 서버, 로그인, 결제, AI API는 필요하지 않습니다. 브라우저나 기기 사이에 자동으로 동기화되지 않습니다. 브라우저 저장 데이터를 지우거나 확장프로그램을 삭제하기 전에 JSON 백업을 보관하세요.
-
-웹에서 **확장프로그램 · 백업 → 확장프로그램으로 보내기**를 누르면 현재 웹의 내용을 확장프로그램으로 복사합니다. 자동 양방향 동기화가 아닙니다. 확장프로그램에서 수정한 내용을 웹으로 옮기려면 확장프로그램에서 JSON을 내보내고 웹에서 가져오세요. 전송·가져오기·답변 삭제 전 내용은 이전 백업으로 보관됩니다.
+- **로그인 전**: 웹은 현재 브라우저의 localStorage, 확장은 chrome.storage.local 에 저장합니다. 기기·브라우저 사이에 동기화되지 않습니다.
+- **로그인 후**: Google 계정(Firebase Authentication)으로 로그인하면 답변이 Cloud Firestore 의 `answerDrawer/{uid}` 아래에 저장되고, 웹·확장 어디서 추가·수정·삭제하든 상대편에 자동으로 반영됩니다. Firebase 프로젝트는 프리캔버스AI(marketgen-ai-87525)를 함께 쓰므로 프리캔버스와 같은 Google 계정입니다.
+- **최초 로그인 시 이전**: 이 브라우저에 있던 답변은 계정에 아직 데이터가 없을 때 계정으로 옮겨집니다(한 계정에만). 계정에 이미 답변이 있으면 계정 것을 불러오고, 브라우저에 있던 답변은 「이전 백업」으로 보관합니다.
+- **계정 전환·로그아웃**: 다른 계정으로 로그인하면 그 계정의 답변만 보이고, 로그아웃하면 계정 답변은 화면에서 사라지고 다시 브라우저 저장 모드가 됩니다.
+- **오프라인**: 연결이 끊기면 「오프라인」으로 표시되고, 그동안의 수정은 연결이 돌아오면 자동으로 올라갑니다. 권한 등으로 저장에 실패하면 「동기화 오류」와 함께 다시 시도할 수 있습니다.
 
 초기 스토어명은 `내 스토어`이며 주소·배송비는 비어 있습니다. 실제 정책에 맞게 먼저 설정하세요. 기본 답변 역시 판매 정책과 고객 문의에 맞게 검토한 뒤 사용하세요.
 
-## 바로 설치하기
+## 확장프로그램에서 쓰기
 
-1. `answer-drawer-extension.zip`을 원하는 폴더에 압축 해제합니다.
-2. Chrome 주소창에 `chrome://extensions`를 입력합니다.
-3. **개발자 모드**를 켭니다.
-4. **압축해제된 확장 프로그램을 로드합니다**를 누르고 `manifest.json`이 있는 폴더를 선택합니다.
-5. 도구 모음에서 답변서랍 아이콘을 클릭하면 사이드 패널이 열립니다.
-6. 처음에는 **스토어 설정**에서 스토어명과 안내를 입력하세요.
+별도 확장이 아니라 Chrome 웹스토어의 **프리캔버스AI 보조**(ID `hlhgommjiblanfmcnbhecfmigjopjffd`) 안에 들어 있습니다.
 
-Chrome 116 이상을 대상으로 합니다. Chrome 웹 스토어에 등록한 버전은 아니며, 수동 설치 패키지입니다. 확장프로그램은 셀러 페이지를 읽거나 답변을 자동 발송하지 않습니다. 사용자가 복사한 문구를 문의창에 붙여 넣어 전송합니다.
+1. Chrome 웹스토어에서 프리캔버스AI 보조를 설치합니다(또는 프리캔버스가 제공하는 ZIP 을 압축 해제해 `chrome://extensions` 개발자 모드에서 로드).
+2. 툴바 아이콘을 누르고 **답변서랍 열기**를 선택하면 사이드패널이 열립니다.
+3. 사이드패널에서 **Google로 로그인**을 누릅니다. 웹과 같은 계정이면 답변이 그대로 보입니다.
 
-## GitHub Pages 배포
-
-배포 대상은 `ramiteacher/answer-drawer`입니다. 현재 산출물에는 코드와 배포 설정이 준비되어 있으며, 실제 저장소 생성 및 Pages 배포 완료 여부는 별도로 확인해야 합니다.
-
-### 소스에서 배포
-
-1. GitHub에 새 공개 저장소 `answer-drawer`를 만듭니다.
-2. 이 프로젝트 파일을 저장소의 `main` 브랜치에 업로드합니다. `node_modules`, `.test-build`, `release`는 업로드하지 않습니다.
-3. 저장소 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 선택합니다.
-4. **Actions → Deploy answer-drawer → Run workflow**를 실행합니다. 이후 `main`에 변경 사항을 올리면 자동으로 배포합니다.
-5. 성공하면 GitHub Actions에 표시되는 실제 Pages 주소를 엽니다.
-
-확장프로그램 연결 주소는 `https://ramiteacher.github.io/answer-drawer/`로 설정되어 있습니다. 다른 계정·저장소·도메인을 사용한다면 `extension/manifest.json`의 `content_scripts.matches`, `extension/bridge.ts`의 정확한 origin/path 검사, `components/drawer-dialogs.tsx`의 웹사이트 링크를 함께 변경한 다음 다시 빌드하세요.
-
-### 빌드 없이 배포
-
-`answer-drawer-github-pages.zip`의 내용을 새 저장소 루트에 업로드한 다음 **Settings → Pages → Deploy from a branch → main / (root)**를 선택합니다. 이 ZIP에는 확장프로그램 다운로드 파일도 포함되어 있습니다. 소스 편집·자동 빌드가 필요하면 위 방법을 사용하세요.
+확장은 셀러 페이지를 읽거나 답변을 자동 발송하지 않습니다. 사용자가 복사한 문구를 문의창에 붙여 넣어 전송합니다.
 
 ## 개발과 검증
 
-Node.js 22.13 이상을 권장합니다.
+Node.js 22.13 이상. Firebase 설정값은 `.env.example` 을 복사한 `.env.local` 에 넣습니다(프리캔버스 프로젝트의 공개 웹 설정값).
 
 ```sh
 npm ci
-npm run dev
+npm run dev:pages      # http://127.0.0.1:5180 (실제 Firebase 프로젝트)
 npm run typecheck
-npm test
+npm test               # 순수 로직·offscreen 메시지 검증 (Firebase 불필요)
 npm run build
+```
+
+로컬 에뮬레이터로 로그인·동기화·규칙을 검증하려면(firebase-tools CLI 와 JDK 21 이상 필요):
+
+```sh
+npm run emulators      # Auth 9099 · Firestore 8080 (demo-answer-drawer)
+node scripts/dev-emulator.mjs   # VITE_FIREBASE_EMULATOR=1 로 개발 서버 — 반드시 http://127.0.0.1:5180 로 연다
+npm run test:rules     # emulator/firestore.rules 규칙 테스트
 ```
 
 `npm run build` 결과:
 
-- `dist/`: GitHub Pages 정적 사이트
-- `release/extension/`: Chrome에 로드할 폴더
-- `release/answer-drawer-extension.zip`: 확장프로그램 설치 패키지
-- `release/answer-drawer-github-pages.zip`: 빌드된 정적 사이트
+- `dist/`: GitHub Pages 정적 사이트 (`index.html` 답변서랍 + `auth.html` 확장 로그인 도우미)
+- `release/answer-drawer/`: 프리캔버스AI 보조 확장에 넣는 사이드패널 폴더 (`sidepanel.html`, `offscreen.html`, `offscreen.js`, `assets/`)
+- `release/answer-drawer-panel.zip`, `release/answer-drawer-github-pages.zip`
 
-웹사이트와 확장프로그램 모두 외부 실행 코드·외부 폰트에 의존하지 않습니다. Pages의 저장소 하위 경로에서 작동하도록 상대 경로로 빌드합니다.
+사이드패널 폴더를 프리캔버스 확장(marketgen-ai 저장소)에 복사하려면 `npm run sync:freecanvas -- <marketgen-ai 경로>` 를 실행합니다. 소스 폴더와 배포 미러 폴더 둘 다에 `answer-drawer/` 로 복사되며, 그 뒤 marketgen-ai 에서 확장 버전을 올리고 `npm run package:smartstore-extension` 으로 ZIP 을 다시 만듭니다.
+
+## 확장 로그인 구조
+
+Manifest V3 확장에서는 `signInWithPopup` 을 바로 쓸 수 없어 Firebase 가 안내하는 offscreen 문서 방식을 씁니다.
+
+1. 사이드패널이 백그라운드에 `answer-drawer-auth-open` 을 보내면 `answer-drawer/offscreen.html` 이 만들어집니다.
+2. offscreen 문서는 웹의 `auth.html` 을 iframe 으로 열고, 사이드패널의 `answer-drawer-auth-run` 요청을 받아 iframe 에 `answer-drawer-init-auth` 를 보냅니다.
+3. `auth.html` 은 요청 origin 이 프리캔버스AI 보조 확장(`chrome-extension://hlhgommjiblanfmcnbhecfmigjopjffd`)일 때만 Google 팝업 로그인을 진행하고 OAuth 자격 증명(idToken/accessToken)만 돌려줍니다.
+4. 사이드패널이 `signInWithCredential` 로 로그인을 끝냅니다. 토큰은 저장소에 복사하지 않고 Firebase Auth 의 기본 persistence 에 맡깁니다.
+
+확장 ID 는 확장 manifest 의 `key`(웹스토어 개발자 공개키)로 고정됩니다. 키를 바꾸면 `lib/extension-id.ts` 도 함께 바꿔야 하며, 테스트가 둘의 일치를 검증합니다.
+
+## Firestore 규칙
+
+배포 규칙은 marketgen-ai 저장소의 `firestore.rules` 에 `answerDrawer` 블록으로 병합되어 그쪽에서 배포합니다(프로젝트가 프리캔버스·매칭체커와 공유됨). 이 저장소의 `emulator/firestore.rules` 는 같은 블록의 에뮬레이터·테스트용 사본이며, 이 저장소에서 `firebase deploy` 를 실행하면 안 됩니다. 규칙은 본인 UID 아래 문서만 읽고 쓸 수 있게 하고, 허용 필드·타입·길이를 검사합니다.
+
+## GitHub Pages 배포
+
+`main` 에 푸시하면 `.github/workflows/pages.yml` 이 typecheck → test → build → Pages 배포를 수행합니다. 빌드에는 저장소 secrets `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID` 가 필요하며, 없으면 빌드가 실패합니다. Firebase Authentication 승인 도메인에 `ramiteacher.github.io` 가 있어야 합니다(등록됨).
 
 ## 권한과 개인정보
 
-- `storage`: 사용자의 답변과 스토어 정보 저장
-- `sidePanel`: 문의 페이지 옆에 답변서랍 표시
-- `clipboardWrite`: 사용자가 누른 답변 복사 버튼 처리
-- content script: 정확한 관리 페이지 경로에서 사용자가 실행한 답변 전송만 수신
-
-셀러 플랫폼 로그인 정보, 고객 문의 내용, 주문 자료는 수집하지 않습니다. 웹 데이터는 브라우저에 보관하며 GitHub 저장소로 전송하지 않습니다. 데이터 분석·광고·원격 로깅 SDK를 포함하지 않습니다.
-
-## 검증 범위
-
-TypeScript 검사, 프로덕션 빌드, 변수 치환, 백업 유효성, 브라우저/확장 저장 어댑터, 연결 메시지의 출처·형식 검증을 수행했습니다. 실제 Chrome 설치와 브라우저 화면 클릭 검증은 별도 확인이 필요합니다.
+- 웹: Google 계정 이메일·이름·프로필 사진을 로그인 표시에만 사용합니다. 답변 데이터는 본인 UID 아래에만 저장됩니다.
+- 확장(프리캔버스AI 보조): `sidePanel`(답변서랍 표시), `offscreen`(로그인 도우미 로드). 셀러 플랫폼 로그인 정보, 고객 문의 내용, 주문 자료는 수집하지 않습니다.
+- 데이터 분석·광고·원격 로깅 SDK 를 포함하지 않습니다.

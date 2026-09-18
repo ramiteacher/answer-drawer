@@ -14,7 +14,11 @@
     "test": "node --test tests/core.test.mjs",
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "dev:pages": "vite --config vite.pages.config.ts",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-answer-drawer --config firebase.emulator.json",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-answer-drawer --config firebase.emulator.json \"node --test tests/rules.test.mjs\"",
+    "sync:freecanvas": "node scripts/sync-freecanvas-extension.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -26,6 +30,7 @@
     "date-fns": "^4.4.0",
     "drizzle-orm": "0.45.2",
     "embla-carousel-react": "^8.6.0",
+    "firebase": "^12.19.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.31.0",
     "next": "16.3.4",
@@ -45,7 +50,9 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "4.20260515.1",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/postcss": "4.2.1",
+    "@types/chrome": "^0.3.0",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
